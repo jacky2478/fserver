@@ -1,0 +1,111 @@
+package web
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
+	"path/filepath"
+	"strconv"
+
+	sessions "github.com/goincremental/negroni-sessions"
+	"github.com/jery1024/mlog"
+)
+
+/*
+usage:
+server := fserver.NewTServer("demo", "8080", "./", "/api")
+server.Run()
+*/
+
+type IEngine interface {
+	InitEngine() error
+	InitStatic(path string) error
+	InitMiddware(middwares ...*TMiddware) error
+	InitRouter(apiPrefix string, handlers ...*THandler) error
+
+	ServeHTTP(rw http.ResponseWriter, r *http.Request)
+}
+
+func NewTServer(name, port, static, apiPrefix string, handlers ...*THandler) *TServer {
+	if !filepath.IsAbs(static) {
+		if ret, err := filepath.Abs(static); err != nil {
+			mlog.Errorf("NewTServer failed with invalid static directory, static: %v, detai: %v", static, err.Error())
+			return nil
+		} else {
+			static = ret
+		}
+	}
+	ts := &TServer{Name: name, Port: port, Static: static, ApiPrefix: apiPrefix, handlers: make([]*THandler, 0), middwares: make([]*TMiddware, 0)}
+	if handlers != nil && len(handlers) > 0 {
+		ts.handlers = handlers[:]
+	}
+	return ts
+}
+
+func NewTHandler(path, method string, beforeHandleFunc, doHandleFunc, afterHandleFunc func(rw http.ResponseWriter, r *http.Request, params url.Values) error) *THandler {
+	return &THandler{Path: path, Method: method, BeforeHandleFunc: beforeHandleFunc, DoHandleFunc: doHandleFunc, AfterHandleFunc: afterHandleFunc}
+}
+
+func NewTMiddware(name string, beforeSession bool, doHandleFunc http.HandlerFunc) *TMiddware {
+	return &TMiddware{Name: name, BeforeSession: beforeSession, DoHandleFunc: doHandleFunc}
+}
+
+func NewStatusMiddware() *TMiddware {
+	doTaskID := func(rw http.ResponseWriter, r *http.Request) {
+		if sessions.GetSession(r).Get(c_session_ID) == nil {
+			sessions.GetSession(r).Set(c_session_ID, getRandomString(32))
+		}
+		r.Header.Add(c_task_ID, getRandomString(6))
+	}
+	return &TMiddware{Name: "StatusMiddware", BeforeSession: false, DoHandleFunc: http.HandlerFunc(doTaskID)}
+}
+
+func ResponseDirect(w http.ResponseWriter, r *http.Request, data []byte) {
+	mlog.Infof("[%v] %v: %v, response: %+v", r.Header.Get(c_task_ID), r.Method, r.URL.Path, string(data))
+
+	w.Header().Set("Content-Length", strconv.Itoa(len(data)))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+}
+
+func ResponseError(w http.ResponseWriter, r *http.Request, errorInfo string) {
+	ret := struct {
+		Error string
+	}{}
+	ret.Error = errorInfo
+	respBuf, err := json.MarshalIndent(ret, "", "")
+	if err != nil {
+		jsonErr := fmt.Errorf("ResponseError failed while doing json.MarshalIndent, detail: %v", err.Error())
+		http.Error(w, jsonErr.Error(), http.StatusInternalServerError)
+		mlog.Error(jsonErr.Error())
+		return
+	}
+	mlog.Errorf("[%v] %v: %v, response: %+v", r.Header.Get(c_task_ID), r.Method, r.URL.Path, string(respBuf))
+
+	w.Header().Set("Content-Length", strconv.Itoa(len(respBuf)))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(respBuf)
+}
+
+func ResponseOk(w http.ResponseWriter, r *http.Request, data interface{}) {
+	respBuf, err := json.MarshalIndent(data, "", "")
+	if err != nil {
+		jsonErr := fmt.Errorf("ResponseOk failed while doing json.MarshalIndent, detail: %v", err.Error())
+		http.Error(w, jsonErr.Error(), http.StatusInternalServerError)
+		mlog.Error(jsonErr.Error())
+		return
+	}
+	mlog.Infof("[%v] %v: %v, response: %+v", r.Header.Get(c_task_ID), r.Method, r.URL.Path, string(respBuf))
+
+	w.Header().Set("Content-Length", strconv.Itoa(len(respBuf)))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(respBuf)
+}
+
+func SessionID(r *http.Request) string {
+	return sessionID(r)
+}
