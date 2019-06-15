@@ -82,10 +82,10 @@ func (p *TServer) DefaultStatus(rw http.ResponseWriter, r *http.Request, params 
 	}
 	ret := struct {
 		ID     string
-		Server *TServer
+		Server interface{}
 	}{
 		ID:     SessionID(r),
-		Server: p,
+		Server: getStatus(C_Status_Server, r),
 	}
 	ResponseOk(rw, r, ret)
 	return nil

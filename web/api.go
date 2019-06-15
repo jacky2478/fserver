@@ -51,10 +51,12 @@ func NewTMiddware(name string, beforeSession bool, doHandleFunc http.HandlerFunc
 	return &TMiddware{Name: name, BeforeSession: beforeSession, DoHandleFunc: doHandleFunc}
 }
 
-func NewStatusMiddware() *TMiddware {
+func NewStatusMiddware(ptr *TServer) *TMiddware {
 	doTaskID := func(rw http.ResponseWriter, r *http.Request) {
 		if sessions.GetSession(r).Get(c_session_ID) == nil {
-			sessions.GetSession(r).Set(c_session_ID, getRandomString(32))
+			sessID := getRandomString(32)
+			sessions.GetSession(r).Set(c_session_ID, sessID)
+			setStatus(C_Status_Server, ptr, r)
 		}
 		r.Header.Add(c_task_ID, getRandomString(6))
 	}
@@ -108,4 +110,16 @@ func ResponseOk(w http.ResponseWriter, r *http.Request, data interface{}) {
 
 func SessionID(r *http.Request) string {
 	return sessionID(r)
+}
+
+const (
+	C_Status_Server = "server"
+)
+
+func GetStatus(key string, r *http.Request) interface{} {
+	return getStatus(key, r)
+}
+
+func SetStatus(key string, val interface{}, r *http.Request) {
+	setStatus(key, val, r)
 }
