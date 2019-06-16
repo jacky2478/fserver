@@ -23,10 +23,12 @@ type THandler struct {
 }
 
 func toUrlValues(r *http.Request) url.Values {
-	if strings.Contains(r.Header.Get("Content-Type"), "multipart/form-data") {
-		r.ParseMultipartForm(32 << 20)
-	} else {
-		r.ParseForm()
+	if r.Header.Get(c_parse_params_ok) != "true" {
+		if strings.Contains(r.Header.Get("Content-Type"), "multipart/form-data") {
+			r.ParseMultipartForm(32 << 20)
+		} else {
+			r.ParseForm()
+		}
 	}
 
 	ret := make(url.Values, 0)
@@ -46,6 +48,7 @@ func toUrlValues(r *http.Request) url.Values {
 			ret.Add(k, r.PostForm.Get(k))
 		}
 	}
+	r.Header.Add(c_parse_params_ok, "true")
 	mlog.Infof("[%v] %v: %v, request: %+v", r.Header.Get(c_task_ID), r.Method, r.URL.Path, ret)
 	return ret
 }

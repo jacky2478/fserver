@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"sync"
 
 	sessions "github.com/goincremental/negroni-sessions"
@@ -10,15 +11,17 @@ import (
 
 // const value
 const (
-	c_task_ID    = "taskID"
-	c_session_ID = "sessionID"
+	c_task_ID         = "taskID"
+	c_session_ID      = "sessionID"
+	c_parse_params_ok = "parseParamsOK"
 )
 
 /* ======TMiddware====== */
 type TMiddware struct {
 	Name          string
+	BeforeStatic  bool
 	BeforeSession bool
-	DoHandleFunc  http.HandlerFunc
+	DoHandleFunc  func(rw http.ResponseWriter, r *http.Request, params url.Values) error
 }
 
 func sessionID(r *http.Request) string {

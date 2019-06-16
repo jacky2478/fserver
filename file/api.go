@@ -71,6 +71,18 @@ func GetRootDist(name string) string {
 }
 
 /*
+Title Download
+router /download [post]
+*/
+func DownloadFile(w http.ResponseWriter, r *http.Request, params url.Values) error {
+	ret := struct {
+		Error string
+	}{}
+	web.ResponseOk(w, r, ret)
+	return nil
+}
+
+/*
 Title Upload
 router /upload [post]
 

@@ -40,7 +40,18 @@ func newSession() negroni.Handler {
 	return negroni.HandlerFunc(sessions.Sessions(refitself_session, store))
 }
 
-func (p *tNegroni) InitStatic(path string) error {
+func (p *tNegroni) InitStatic(path string, middwares ...*TMiddware) error {
+	for _, m := range middwares {
+		if m.BeforeStatic && m.DoHandleFunc != nil {
+			p.engine.Use(negroni.HandlerFunc(func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+				params := toUrlValues(r)
+				if err := m.DoHandleFunc(rw, r, params); err != nil {
+					return
+				}
+				next(rw, r)
+			}))
+		}
+	}
 	p.engine.Use(negroni.NewStatic(http.Dir(path)))
 	return nil
 }
@@ -52,13 +63,25 @@ func (p *tNegroni) InitMiddware(middwares ...*TMiddware) error {
 	}
 	for _, m := range middwares {
 		if m.BeforeSession && m.DoHandleFunc != nil {
-			p.engine.Use(negroni.Wrap(m.DoHandleFunc))
+			p.engine.Use(negroni.HandlerFunc(func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+				params := toUrlValues(r)
+				if err := m.DoHandleFunc(rw, r, params); err != nil {
+					return
+				}
+				next(rw, r)
+			}))
 		}
 	}
 	p.engine.Use(newSession())
 	for _, m := range middwares {
 		if !m.BeforeSession && m.DoHandleFunc != nil {
-			p.engine.Use(negroni.Wrap(m.DoHandleFunc))
+			p.engine.Use(negroni.HandlerFunc(func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+				params := toUrlValues(r)
+				if err := m.DoHandleFunc(rw, r, params); err != nil {
+					return
+				}
+				next(rw, r)
+			}))
 		}
 	}
 	return nil

@@ -20,8 +20,8 @@ server.Run()
 
 type IEngine interface {
 	InitEngine() error
-	InitStatic(path string) error
 	InitMiddware(middwares ...*TMiddware) error
+	InitStatic(path string, middwares ...*TMiddware) error
 	InitRouter(apiPrefix string, handlers ...*THandler) error
 
 	ServeHTTP(rw http.ResponseWriter, r *http.Request)
@@ -47,20 +47,21 @@ func NewTHandler(path, method string, beforeHandleFunc, doHandleFunc, afterHandl
 	return &THandler{Path: path, Method: method, BeforeHandleFunc: beforeHandleFunc, DoHandleFunc: doHandleFunc, AfterHandleFunc: afterHandleFunc}
 }
 
-func NewTMiddware(name string, beforeSession bool, doHandleFunc http.HandlerFunc) *TMiddware {
-	return &TMiddware{Name: name, BeforeSession: beforeSession, DoHandleFunc: doHandleFunc}
+func NewTMiddware(name string, beforeStatic, beforeSession bool, doHandleFunc func(rw http.ResponseWriter, r *http.Request, params url.Values) error) *TMiddware {
+	return &TMiddware{Name: name, BeforeStatic: beforeStatic, BeforeSession: beforeSession, DoHandleFunc: doHandleFunc}
 }
 
 func NewStatusMiddware(ptr *TServer) *TMiddware {
-	doTaskID := func(rw http.ResponseWriter, r *http.Request) {
+	doTaskID := func(rw http.ResponseWriter, r *http.Request, params url.Values) error {
 		if sessions.GetSession(r).Get(c_session_ID) == nil {
 			sessID := getRandomString(32)
 			sessions.GetSession(r).Set(c_session_ID, sessID)
 			setStatus(C_Status_Server, ptr, r)
 		}
 		r.Header.Add(c_task_ID, getRandomString(6))
+		return nil
 	}
-	return &TMiddware{Name: "StatusMiddware", BeforeSession: false, DoHandleFunc: http.HandlerFunc(doTaskID)}
+	return &TMiddware{Name: "StatusMiddware", BeforeSession: false, DoHandleFunc: doTaskID}
 }
 
 func ResponseDirect(w http.ResponseWriter, r *http.Request, data []byte) {
