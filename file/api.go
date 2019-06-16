@@ -37,7 +37,7 @@ func RegistRootDist(name, rootPath string) error {
 		}
 	}
 	rootDistMap.Store(name, rootPath)
-	mlog.Infof("RegistRootDist successed, name: %v, rootPath: %v", name, rootPath)
+	// mlog.Infof("RegistRootDist successed, name: %v, rootPath: %v", name, rootPath)
 	return nil
 }
 
@@ -52,7 +52,7 @@ func RegistFileDist(webPath, distPath string) error {
 		return fmt.Errorf("RegistFileDist failed with invalid distPath, distPath: %v", distPath)
 	}
 	fileDistMap.Store(webPath, distPath)
-	mlog.Infof("RegistFileDist successed, webPath: %v, distPath: %v", webPath, distPath)
+	// mlog.Infof("RegistFileDist successed, webPath: %v, distPath: %v", webPath, distPath)
 	return nil
 }
 
