@@ -36,8 +36,7 @@ func newSession() negroni.Handler {
 	store.Options(sessions.Options{
 		MaxAge: 86400,
 	})
-	refitself_session := "session_fserver"
-	return negroni.HandlerFunc(sessions.Sessions(refitself_session, store))
+	return negroni.HandlerFunc(sessions.Sessions(c_session_ID, store))
 }
 
 func (p *tNegroni) InitStatic(path string, middwares ...*TMiddware) error {

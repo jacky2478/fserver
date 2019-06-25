@@ -12,7 +12,7 @@ import (
 // const value
 const (
 	c_task_ID         = "taskID"
-	c_session_ID      = "sessionID"
+	c_session_ID      = "session_fserver"
 	c_parse_params_ok = "parseParamsOK"
 )
 
