@@ -1,64 +1,66 @@
 package main
 
-import (
-	"flag"
-	"net/http"
+func main(){}
 
-	"github.com/jery1024/fserver/file"
+// import (
+// 	"flag"
+// 	"net/http"
 
-	"github.com/jery1024/fserver/web"
-	"github.com/jery1024/mlog"
-)
+// 	"github.com/jacky2478/fserver/file"
 
-var port = flag.String("port", "9999", "--port=8080")
-var mode = flag.String("mode", "web", "--mode=web,file")
+// 	"github.com/jacky2478/fserver/web"
+// 	"github.com/jacky2478/mlog"
+// )
 
-func main() {
-	flag.Parse()
-	initLog()
+// var port = flag.String("port", "9999", "--port=8080")
+// var mode = flag.String("mode", "web", "--mode=web,file")
 
-	if err := runServer(); err != nil {
-		mlog.Error(err.Error())
-	}
-	wait()
-}
+// func main() {
+// 	flag.Parse()
+// 	initLog()
 
-func initLog() {
-	mlog.SetDepth(4)
-	mlog.SetFlags(mlog.LstdFlags)
-	mlog.SetHighlighting(false)
-	mlog.SetLevel(mlog.LOG_LEVEL_ALL)
-}
+// 	if err := runServer(); err != nil {
+// 		mlog.Error(err.Error())
+// 	}
+// 	wait()
+// }
 
-func runServer() error {
-	switch *mode {
-	case "web":
-		go runWebServer()
-	case "file":
-		go runFileServer()
-	}
-	return nil
-}
+// func initLog() {
+// 	mlog.SetDepth(4)
+// 	mlog.SetFlags(mlog.LstdFlags)
+// 	mlog.SetHighlighting(false)
+// 	mlog.SetLevel(mlog.LOG_LEVEL_ALL)
+// }
 
-func runWebServer() {
-	server := web.NewTServer("fserver", *port, "./", "/api")
-	server.RegistHandler(web.NewTHandler("/status", http.MethodGet, nil, server.DefaultStatus, nil))
-	server.RegistMiddware(web.NewStatusMiddware())
-	if err := server.Run(); err != nil {
-		mlog.Fatal(err.Error())
-	}
-}
+// func runServer() error {
+// 	switch *mode {
+// 	case "web":
+// 		go runWebServer()
+// 	case "file":
+// 		go runFileServer()
+// 	}
+// 	return nil
+// }
 
-func runFileServer() {
-	server := web.NewTServer("fserver", *port, "./", "/api")
-	server.RegistHandler(web.NewTHandler("/file/upload", http.MethodPost, nil, file.UploadFile, nil))
-	server.RegistHandler(web.NewTHandler("/status", http.MethodGet, nil, server.DefaultStatus, nil))
-	server.RegistMiddware(web.NewStatusMiddware())
-	if err := server.Run(); err != nil {
-		mlog.Fatal(err.Error())
-	}
-}
+// func runWebServer() {
+// 	server := web.NewTServer("fserver", *port, "./", "/api")
+// 	server.RegistHandler(web.NewTHandler("/status", http.MethodGet, nil, server.DefaultStatus, nil))
+// 	server.RegistMiddware(web.NewStatusMiddware())
+// 	if err := server.Run(); err != nil {
+// 		mlog.Fatal(err.Error())
+// 	}
+// }
 
-func wait() {
-	select {}
-}
+// func runFileServer() {
+// 	server := web.NewTServer("fserver", *port, "./", "/api")
+// 	server.RegistHandler(web.NewTHandler("/file/upload", http.MethodPost, nil, file.UploadFile, nil))
+// 	server.RegistHandler(web.NewTHandler("/status", http.MethodGet, nil, server.DefaultStatus, nil))
+// 	server.RegistMiddware(web.NewStatusMiddware())
+// 	if err := server.Run(); err != nil {
+// 		mlog.Fatal(err.Error())
+// 	}
+// }
+
+// func wait() {
+// 	select {}
+// }

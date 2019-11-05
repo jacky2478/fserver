@@ -8,7 +8,7 @@ import (
 
 	sessions "github.com/goincremental/negroni-sessions"
 	"github.com/goincremental/negroni-sessions/cookiestore"
-	"github.com/jery1024/mlog"
+	"github.com/jacky2478/mlog"
 	"github.com/julienschmidt/httprouter"
 	"github.com/urfave/negroni"
 )

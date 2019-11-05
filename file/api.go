@@ -13,8 +13,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/jery1024/fserver/web"
-	"github.com/jery1024/mlog"
+	"github.com/jacky2478/fserver/web"
+	"github.com/jacky2478/mlog"
 )
 
 var rootDistMap, fileDistMap sync.Map
